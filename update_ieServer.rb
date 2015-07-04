@@ -7,7 +7,7 @@ require 'kconv'
 require 'nkf'
 require 'fileutils'
 require 'mysql'
-$LOAD_PATH.unshift('D:/system/lib')
+#$LOAD_PATH.unshift(LIBDIR)
 require 'common'
 
 
@@ -19,9 +19,15 @@ agent = Mechanize.new
 puts "\nieServer へ接続"
 
 begin
-	filehdl = agent.get("http://ieserver.net/cgi-bin/dip.cgi?username=username&domain=dip.jp&password=password&updatehost=1")
+	filehdl = agent.get("http://ieserver.net/cgi-bin/dip.cgi?username=nyctea&domain=dip.jp&password=doseisan128&updatehost=1")
 	filehdl.save!(DATADIR + "/ieServerstatus_work.txt")
 rescue => ex
+=begin
+	connection = Mysql::new(DBHOST, DBUSER, DBPASS , DBSCHEMA)
+		result = connection.prepare("INSERT INTO C_PARTS_CTRL(PARTS_ID,PARTS_KBN,PRM,STATUS,KSN_USER,RCD_KSN_TIME,RCD_TRK_TIME) VALUES(?,?,?,?,?,?,?)")
+		result.execute(thisPGM , '1' , 'Access Error ieServer.net' , '1' , thisPGM , strGetTime , strGetTime)
+	connection.close
+=end
 	PARCON_SQL.abnormal('Access Error ieServer.net')
 
 	puts "Access Error ieServer.net"
@@ -35,6 +41,14 @@ open(DATADIR + "ieServerstatus_work.txt", :encoding => Encoding::EUC_JP){|fhdl|
 	ieServerstatus = fhdl.readlines
 }
 
+=begin
+if /nochg/.match( ieServerstatus[0] ) then
+	#agent = Mechanize.new
+	myip = agent.get("http://ipcheck.ieserver.net")
+	myip = agent.page.body
+	ieServerstatus[0] = ieServerstatus[0] + " " + myip
+end
+=end
 
 begin
 	File.delete(DATADIR + "ieServerstatus.txt")
@@ -54,7 +68,7 @@ begin
 		
 		myip = agent.get("http://ipcheck.ieserver.net")
 		myip = agent.page.body
-		strPRM = "domain " + myip
+		strPRM = DOMAIN_HOME + " " + myip
 		filehdl.puts strPRM
 		filehdl.puts strGetTime
 	filehdl.close
@@ -71,6 +85,12 @@ puts "\nsakuraVPSへコピー中"
 begin
 	FileUtils.cp( DATADIR + "ieServerstatus.txt", SHAREDIR + "ieServerstatus.txt")
 rescue => ex
+=begin
+	connection = Mysql::new(DBHOST, DBUSER, DBPASS , DBSCHEMA)
+		result = connection.prepare("INSERT INTO C_PARTS_CTRL(PARTS_ID,PARTS_KBN,PRM,STATUS,KSN_USER,RCD_KSN_TIME,RCD_TRK_TIME) VALUES(?,?,?,?,?,?,?)")
+		result.execute(thisPGM , '1' , 'SHEREDIR is disconnected' , '1' , thisPGM , strGetTime , strGetTime)
+	connection.close
+=end
 	PARCON_SQL.abnormal('SHEREDIR is disconnected')
 	puts "SHEREDIR is disconnected"
 	puts "コピー失敗"
@@ -82,6 +102,10 @@ end
 puts "\nPARTS_CTRLへ書込中"
 	PARCON_SQL.normal(strPRM)
 puts "書込完了"
+
+#アプデートするたびにnyctea_me.mysql.userにホスト名を書き込めばいいんだ
+#ここからしかアクセスできなくなる、いいね
+
 
 puts "\n5秒後に自動的に閉じます\n"
 sleep 5
