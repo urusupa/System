@@ -10,6 +10,7 @@ require 'mysql'
 #$LOAD_PATH.unshift(LIBDIR)
 require 'common'
 
+result = `title update_ieServer`
 
 #thisPGM =$0.gsub( File.dirname(__FILE__) , '' ).gsub( /\// , '')
 thisPGM = "update_ieServer.rb"

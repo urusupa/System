@@ -6,6 +6,8 @@ require 'mechanize'
 
 YParray = ["http://bayonet.ddo.jp/sp/uptest/","http://temp.orz.hm/yp/uptest/","http://games.himitsukichi.com/hktv/uptest/"]
 
+result = `title YPcheck`
+
 YParray.each{|ypurl|
 	begin
 		agent = Mechanize.new
